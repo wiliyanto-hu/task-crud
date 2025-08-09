@@ -1,10 +1,12 @@
 import {
   Column,
   CreateDateColumn,
+  Entity,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { TaskStatus } from 'src/common/enum/task.enum';
+@Entity()
 export class Task {
   @PrimaryGeneratedColumn()
   id: number;
