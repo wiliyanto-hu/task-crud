@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Task } from './entities/task.entity';
 import { TaskStatus } from 'src/common/enum/task.enum';
+import { FindTaskDTO } from './dto/find-task.dto';
 
 @Injectable()
 export class TaskService {
@@ -21,8 +22,18 @@ export class TaskService {
     });
   }
 
-  async findAll() {
-    return await this.taskReposity.find();
+  async findAll(findTaskDto: FindTaskDTO) {
+    const { page = 1, limit = 10, status } = findTaskDto;
+    const offset = (page - 1) * limit;
+    const [tasks, count] = await this.taskReposity.findAndCount({
+      take: limit,
+      skip: offset,
+      ...(status && { where: { status } }),
+    });
+    return {
+      data: tasks,
+      totalRecord: count,
+    };
   }
 
   async findOne(id: number) {
