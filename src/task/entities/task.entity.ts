@@ -1,1 +1,26 @@
-export class Task {}
+import {
+  Column,
+  CreateDateColumn,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { TaskStatus } from 'src/common/enum/task.enum';
+export class Task {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ length: 255, type: 'varchar' })
+  title: string;
+
+  @Column({ type: 'text', nullable: true })
+  description: string;
+
+  @Column({ type: 'enum', enum: TaskStatus, default: TaskStatus.TODO })
+  status: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+}
