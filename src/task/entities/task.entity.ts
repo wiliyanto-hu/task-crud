@@ -5,7 +5,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { TaskStatus } from 'src/common/enum/task.enum';
+import { TaskStatus } from '../../common/enum/task.enum';
 @Entity()
 export class Task {
   @PrimaryGeneratedColumn()
