@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
@@ -67,6 +67,8 @@ describe('AppController (e2e)', () => {
       .compile();
 
     app = moduleFixture.createNestApplication();
+    app.useGlobalPipes(new ValidationPipe());
+
     await app.init();
   });
 
@@ -143,4 +145,33 @@ describe('AppController (e2e)', () => {
       );
     });
   });
+  describe('/task (POST)', () => {
+    const createdTaskPayload = {
+      title: 'New Task',
+      description: 'New Task Description',
+    };
+    it('With correct payload', async () => {
+      await request(app.getHttpServer())
+        .post('/task')
+        .send(createdTaskPayload)
+        .expect(201);
+
+      const tasks = await request(app.getHttpServer()).get('/task').expect(200);
+      expect(tasks.body).toEqual(
+        expect.objectContaining({
+          data: expect.arrayContaining([expect.anything()]),
+          totalRecord: TASK_TOTAL_RECORD + 1,
+        }),
+      );
+    });
+    it('With incorrect payload', async () => {
+      createdTaskPayload.title = '';
+      await request(app.getHttpServer())
+        .post('/task')
+        .send(createdTaskPayload)
+        .expect(400);
+    });
+  });
+  describe('/task (POST)', () => {});
+  describe('/task (POST)', () => {});
 });
