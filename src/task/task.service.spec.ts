@@ -118,7 +118,7 @@ describe('TaskService', () => {
   });
 
   describe('update', () => {
-    it('should update task with id', async () => {
+    it('should update task with id and return updated task', async () => {
       const updateTaskDto = { status: TaskStatus.INPROGRES };
       const updatedTask = {
         ...taskOne,
@@ -132,6 +132,13 @@ describe('TaskService', () => {
         updatedTask,
       );
       expect(repoSpy).toHaveBeenCalledWith({ ...taskOne, ...updateTaskDto });
+    });
+  });
+  describe('delete', () => {
+    it('should delete task with id and return nothing', async () => {
+      const repoSpy = jest.spyOn(repo, 'delete');
+      await expect(service.remove(taskOneId)).resolves.toBeUndefined();
+      expect(repoSpy).toHaveBeenCalledWith({ id: taskOneId });
     });
   });
 });
