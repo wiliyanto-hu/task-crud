@@ -4,6 +4,8 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Task } from './entities/task.entity';
 import { Repository } from 'typeorm';
 import { NotFoundException } from '@nestjs/common';
+import { FindTaskDTO } from './dto/find-task.dto';
+import { TaskStatus } from '../common/enum/task.enum';
 
 const taskOne = {
   id: 1,
@@ -22,7 +24,7 @@ const taskArray = [
     id: 2,
     title: 'Task 2',
     description: 'This is task 2 description',
-    status: 'TO_DO',
+    status: 'IN_PROGRESS',
     createdAt: '2025-08-09 15:02:15.526926',
     updatedAt: null,
   },
@@ -30,7 +32,7 @@ const taskArray = [
     id: 3,
     title: 'Task 3',
     description: 'This is task 3 description',
-    status: 'TO_DO',
+    status: 'DONE',
     createdAt: '2025-08-09 15:02:15.526926',
     updatedAt: null,
   },
@@ -47,6 +49,9 @@ describe('TaskService', () => {
         {
           provide: getRepositoryToken(Task),
           useValue: {
+            findAndCount: jest
+              .fn()
+              .mockResolvedValue([taskArray, taskArray.length]),
             findOne: jest.fn().mockResolvedValue(taskOne),
             save: jest.fn(),
             delete: jest.fn(),
@@ -74,6 +79,41 @@ describe('TaskService', () => {
       await expect(service.findOne(notExistId)).rejects.toThrow(
         NotFoundException,
       );
+    });
+  });
+
+  describe('findAll', () => {
+    const defaultLimit = 10;
+    const defaultOffset = 0;
+    it('should use default pagination if page or limit are not provided', async () => {
+      const findTaskDto = {};
+      const repoSpy = jest.spyOn(repo, 'findAndCount');
+      await expect(service.findAll(findTaskDto)).resolves.toEqual({
+        data: taskArray,
+        totalRecord: taskArray.length,
+      });
+      expect(repoSpy).toHaveBeenCalledWith({
+        take: defaultLimit,
+        skip: defaultOffset,
+      });
+    });
+    it('should use filter and pagination if provided', async () => {
+      const findTaskDto: FindTaskDTO = {
+        limit: 5,
+        page: 1,
+        status: TaskStatus.TODO,
+      };
+      const repoSpy = jest.spyOn(repo, 'findAndCount');
+
+      await expect(service.findAll(findTaskDto)).resolves.toEqual({
+        data: taskArray,
+        totalRecord: taskArray.length,
+      });
+      expect(repoSpy).toHaveBeenCalledWith({
+        take: findTaskDto.limit,
+        skip: 0,
+        where: { status: findTaskDto.status },
+      });
     });
   });
 });
