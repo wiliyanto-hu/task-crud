@@ -10,6 +10,8 @@ import { DataSource } from 'typeorm';
 import { TaskStatus } from '../src/common/enum/task.enum';
 
 const TASK_TOTAL_RECORD = 12;
+const EXIST_ID = 1;
+const NON_EXIST_ID = 99;
 
 const setupDataSource = async () => {
   const db = newDb();
@@ -172,6 +174,46 @@ describe('AppController (e2e)', () => {
         .expect(400);
     });
   });
-  describe('/task (POST)', () => {});
+  describe('/task/:id (GET)', () => {
+    it('With Exist ID', async () => {
+      const task = await request(app.getHttpServer())
+        .get(`/task/${EXIST_ID}`)
+        .expect(200);
+      expect((task.body as Task).id).toBe(EXIST_ID);
+    });
+
+    it('With not exist id', async () => {
+      await request(app.getHttpServer())
+        .get(`/task/${NON_EXIST_ID}`)
+        .expect(404);
+    });
+  });
+  describe('/task/:id (PUT)', () => {
+    const updateTaskPayload = {
+      status: TaskStatus.DONE,
+    };
+    it('With correct payload', async () => {
+      const task = await request(app.getHttpServer())
+        .patch(`/task/${EXIST_ID}`)
+        .send(updateTaskPayload)
+        .expect(200);
+      expect((task.body as Task).id).toBe(EXIST_ID);
+      expect((task.body as Task).status).toBe(TaskStatus.DONE);
+    });
+    it('With incorrect payload', async () => {
+      const invalidPayload = { status: 'NO_STATUS' };
+      await request(app.getHttpServer())
+        .patch(`/task/${EXIST_ID}`)
+        .send(invalidPayload)
+        .expect(400);
+    });
+
+    it('With not exist id', async () => {
+      await request(app.getHttpServer())
+        .patch(`/task/${NON_EXIST_ID}`)
+        .send(updateTaskPayload)
+        .expect(404);
+    });
+  });
   describe('/task (POST)', () => {});
 });
