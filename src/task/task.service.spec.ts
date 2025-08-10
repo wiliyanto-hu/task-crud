@@ -116,4 +116,22 @@ describe('TaskService', () => {
       });
     });
   });
+
+  describe('update', () => {
+    it('should update task with id', async () => {
+      const updateTaskDto = { status: TaskStatus.INPROGRES };
+      const updatedTask = {
+        ...taskOne,
+        ...updateTaskDto,
+        updatedAt: new Date(),
+        createdAt: new Date(taskOne.createdAt), // handle type issue
+      };
+      const repoSpy = jest.spyOn(repo, 'save');
+      repoSpy.mockResolvedValueOnce(updatedTask);
+      await expect(service.update(taskOneId, updateTaskDto)).resolves.toEqual(
+        updatedTask,
+      );
+      expect(repoSpy).toHaveBeenCalledWith({ ...taskOne, ...updateTaskDto });
+    });
+  });
 });
