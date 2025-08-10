@@ -70,47 +70,77 @@ describe('AppController (e2e)', () => {
     await app.init();
   });
 
-  it('/task (GET)', async () => {
-    const tasks = await request(app.getHttpServer()).get('/task').expect(200);
-    expect(tasks.body).toEqual(
-      expect.objectContaining({
-        data: expect.arrayContaining([expect.anything()]),
-        totalRecord: TASK_TOTAL_RECORD,
-      }),
-    );
-  });
+  describe('/task (GET)', () => {
+    interface GetTaskResponse {
+      data: Task[];
+      totalRecord: number; // 'totalRecord' is the number of filtered tasks
+    }
 
-  it('/task (GET) with status filter', async () => {
-    const filteredTasksLength = 4;
-    const tasks = await request(app.getHttpServer())
-      .get('/task')
-      .query({ status: 'IN_PROGRESS' })
-      .expect(200);
-    expect(tasks.body).toEqual(
-      expect.objectContaining({
-        data: expect.arrayContaining([expect.anything()]),
-        totalRecord: filteredTasksLength,
-      }),
-    );
-    expect((tasks.body as { data: any[] }).data.length).toBe(
-      filteredTasksLength,
-    );
-  });
-  it('/task (GET) with limit and page', async () => {
-    const queryDto = {
-      page: 2,
-      limit: 5,
-    };
-    const tasks = await request(app.getHttpServer())
-      .get('/task')
-      .query(queryDto)
-      .expect(200);
-    expect(tasks.body).toEqual(
-      expect.objectContaining({
-        data: expect.arrayContaining([expect.anything()]),
-        totalRecord: TASK_TOTAL_RECORD,
-      }),
-    );
-    expect((tasks.body as { data: any[] }).data.length).toBe(queryDto.limit);
+    it('Without query', async () => {
+      const tasks = await request(app.getHttpServer()).get('/task').expect(200);
+      expect(tasks.body).toEqual(
+        expect.objectContaining({
+          data: expect.arrayContaining([expect.anything()]),
+          totalRecord: TASK_TOTAL_RECORD,
+        }),
+      );
+    });
+
+    it('with status filter', async () => {
+      const filteredTasksLength = 4;
+      const queryDto = {
+        status: 'IN_PROGRESS',
+      };
+      const tasks = await request(app.getHttpServer())
+        .get('/task')
+        .query(queryDto)
+        .expect(200);
+      expect(tasks.body).toEqual(
+        expect.objectContaining({
+          data: expect.arrayContaining([expect.anything()]),
+          totalRecord: filteredTasksLength,
+        }),
+      );
+      expect((tasks.body as GetTaskResponse).data.length).toBe(
+        filteredTasksLength,
+      );
+    });
+    it('with limit', async () => {
+      const queryDto = {
+        limit: 5,
+      };
+      const tasks = await request(app.getHttpServer())
+        .get('/task')
+        .query(queryDto)
+        .expect(200);
+      expect(tasks.body).toEqual(
+        expect.objectContaining({
+          data: expect.arrayContaining([expect.anything()]),
+          totalRecord: TASK_TOTAL_RECORD,
+        }),
+      );
+      expect((tasks.body as GetTaskResponse).data.length).toBe(queryDto.limit);
+    });
+    it('with page and limit', async () => {
+      const queryDto = {
+        limit: 5,
+        page: 3,
+      };
+      const tasks = await request(app.getHttpServer())
+        .get('/task')
+        .query(queryDto)
+        .expect(200);
+      expect(tasks.body).toEqual(
+        expect.objectContaining({
+          data: expect.arrayContaining([expect.anything()]),
+          totalRecord: TASK_TOTAL_RECORD,
+        }),
+      );
+      const restOfDataLength =
+        TASK_TOTAL_RECORD - queryDto.limit * (queryDto.page - 1);
+      expect((tasks.body as GetTaskResponse).data.length).toBe(
+        restOfDataLength,
+      );
+    });
   });
 });
