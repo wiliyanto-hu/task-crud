@@ -215,5 +215,23 @@ describe('AppController (e2e)', () => {
         .expect(404);
     });
   });
-  describe('/task (POST)', () => {});
+  describe('/task/:id (DELETE)', () => {
+    it('With exist ID', async () => {
+      await request(app.getHttpServer())
+        .delete(`/task/${EXIST_ID}`)
+        .expect(204);
+      const tasks = await request(app.getHttpServer()).get('/task').expect(200);
+      expect(tasks.body).toEqual(
+        expect.objectContaining({
+          data: expect.arrayContaining([expect.anything()]),
+          totalRecord: TASK_TOTAL_RECORD - 1,
+        }),
+      );
+    });
+    it('With not exist id', async () => {
+      await request(app.getHttpServer())
+        .delete(`/task/${NON_EXIST_ID}`)
+        .expect(404);
+    });
+  });
 });
