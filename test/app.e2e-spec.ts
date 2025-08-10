@@ -11,11 +11,6 @@ import { TaskStatus } from '../src/common/enum/task.enum';
 
 const TASK_TOTAL_RECORD = 12;
 
-const getRandomStatus = (): TaskStatus => {
-  const statuses = Object.values(TaskStatus);
-  return statuses[Math.floor(Math.random() * 3)];
-};
-
 const setupDataSource = async () => {
   const db = newDb();
 
@@ -39,15 +34,19 @@ const setupDataSource = async () => {
 
   const taskRepo = ds.getRepository(Task);
   const tasks: Task[] = [];
+  const statuses = Object.values(TaskStatus);
+  let statusIdx = 0;
 
   for (let i = 1; i <= TASK_TOTAL_RECORD; i++) {
     tasks.push(
       taskRepo.create({
         title: `Task ${i}`,
         description: `Task ${i} Descripton`,
-        status: getRandomStatus(),
+        status: statuses[statusIdx],
       }),
     );
+    statusIdx++;
+    if (statusIdx > 2) statusIdx = 0;
   }
   await taskRepo.save(tasks);
 
@@ -79,5 +78,39 @@ describe('AppController (e2e)', () => {
         totalRecord: TASK_TOTAL_RECORD,
       }),
     );
+  });
+
+  it('/task (GET) with status filter', async () => {
+    const filteredTasksLength = 4;
+    const tasks = await request(app.getHttpServer())
+      .get('/task')
+      .query({ status: 'IN_PROGRESS' })
+      .expect(200);
+    expect(tasks.body).toEqual(
+      expect.objectContaining({
+        data: expect.arrayContaining([expect.anything()]),
+        totalRecord: filteredTasksLength,
+      }),
+    );
+    expect((tasks.body as { data: any[] }).data.length).toBe(
+      filteredTasksLength,
+    );
+  });
+  it('/task (GET) with limit and page', async () => {
+    const queryDto = {
+      page: 2,
+      limit: 5,
+    };
+    const tasks = await request(app.getHttpServer())
+      .get('/task')
+      .query(queryDto)
+      .expect(200);
+    expect(tasks.body).toEqual(
+      expect.objectContaining({
+        data: expect.arrayContaining([expect.anything()]),
+        totalRecord: TASK_TOTAL_RECORD,
+      }),
+    );
+    expect((tasks.body as { data: any[] }).data.length).toBe(queryDto.limit);
   });
 });
