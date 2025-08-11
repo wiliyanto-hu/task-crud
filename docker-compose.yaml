@@ -13,6 +13,7 @@ services:
       - DB_USERNAME=${DB_USERNAME:-postgres}
       - DB_PASSWORD=${DB_PASSWORD:-password}
       - DB_NAME=${DB_NAME:-postgres}
+      - ENV=production
   postgres:
     image: postgres:14
     container_name: postgres-db
