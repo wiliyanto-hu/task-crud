@@ -6,7 +6,7 @@ This is a NestJS application using PostgreSQL as the database.
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (v20+ recommended)
+- [Node.js](https://nodejs.org/) (v20 and up)
 - [PostgreSQL](https://www.postgresql.org/) installed and running
 - [Docker](https://www.docker.com/) (For Docker-based setup)
 
